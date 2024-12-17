@@ -41,12 +41,12 @@ find_package(Boost REQUIRED COMPONENTS system log log_setup)
 #                         Locate files (change as needed).
 # --------------------------------------------------------------------------------
 set(SOURCES          # All .cpp files in src/
-    src/example.cpp
+    src/http_server.cpp
 )
 set(TESTFILES        # All .cpp files in tests/
     tests/main.cpp
 )
-set(LIBRARY_NAME engine)  # Default name for the library built from src/*.cpp (change if you wish)
+set(LIBRARY_NAME http_server)  # Default name for the library built from src/*.cpp (change if you wish)
 
 # --------------------------------------------------------------------------------
 #                            Build! (Change as needed)
