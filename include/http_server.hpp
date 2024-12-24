@@ -5,6 +5,7 @@
 #include <functional>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <unordered_map>
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -32,7 +33,7 @@ private:
 
     // 异步操作相关
     void do_accept();
-
+    std::unordered_map<std::string, std::string> analysis_request(http::request<http::string_body> req);
     asio::io_context& ioc_; // I/O 上下文
     asio::ip::tcp::acceptor acceptor_; // 监听器
     WOLCallback wol_callback_; // 回调函数

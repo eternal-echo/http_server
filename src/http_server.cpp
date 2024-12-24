@@ -12,7 +12,10 @@ HttpServer::HttpServer(asio::io_context& ioc, WOLCallback wol_callback)
 void HttpServer::start_server(unsigned short port) {
     asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), port);
 
-    acceptor_.open(endpoint.protocol());
+    // todo: 可以通过传入不同的 endpoint 来支持 IPv6
+
+    // acceptor_.open(endpoint.protocol());
+    acceptor_.open(asio::ip::tcp::v4()); // 使用 IPv4 协议
     acceptor_.bind(endpoint);
     acceptor_.listen(asio::socket_base::max_listen_connections);
 
@@ -31,6 +34,22 @@ void HttpServer::handle_request(const std::string& mac_address, const std::strin
     }
 }
 
+std::unordered_map<std::string, std::string> HttpServer::analysis_request(http::request<http::string_body> req) {
+    std::string URL = req.target();
+    std::unordered_map<std::string, std::string> params;
+    int start_index = URL.find('?') + 1;
+    int end_index;
+    for ( ; ; ) {
+        end_index = URL.find('&', start_index);
+        if (end_index == int(std::string::npos)) { break; }
+        std::string sub = URL.substr(start_index, end_index - start_index);
+        params[sub.substr(0, sub.find('='))] = sub.substr(sub.find('=') + 1);
+        start_index = end_index + 1;
+    }
+    params[URL.substr(start_index, URL.find('=', start_index) - start_index)] = URL.substr(URL.find('=', start_index) + 1);
+    return params;
+}
+
 // 监听并接受客户端连接
 void HttpServer::do_accept() {
     acceptor_.async_accept(
@@ -44,19 +63,23 @@ void HttpServer::do_accept() {
                 http::read(socket, buffer, req);
 
                 // 打印请求信息（调试成功后注释）
-                std::cout << "Received HTTP request: " << req.method_string() << " " << req.target() << " " << req.version() << std::endl;
+                std::cout << "Received HTTP request: " << req.target() << " " << req.target() << " " << req.version() << std::endl;
 
                 // 获取查询参数并转换为 std::string
-                std::string mac_address = std::string(req["mac"].begin(), req["mac"].end());
-                std::string ip_address = std::string(req["ip"].begin(), req["ip"].end());
-                unsigned short port = std::stoi(req["port"].to_string());
+                std::unordered_map<std::string, std::string> params = analysis_request(req);
+                std::string mac_address = params["mac"];
+                std::string ip_address = params["ip"];
+                std::cout << "mac_address: " << mac_address << std::endl;
+                std::cout << "ip_address: " << ip_address << std::endl;
+                std::cout << "port: " << params["port"] << std::endl;
+                unsigned short port = std::stoi(params["port"]);
 
                 // 处理请求并调用回调
                 handle_request(mac_address, ip_address, port);
 
                 // 创建响应
                 http::response<http::string_body> res{http::status::ok, req.version()};
-                res.set(http::field::server, "Boost.Beast/HTTP Server");
+                // res.set(http::field::server, "Boost.Beast/HTTP Server");
                 res.set(http::field::content_type, "text/plain");
                 res.body() = "WOL signal sent successfully!";
                 res.prepare_payload();
