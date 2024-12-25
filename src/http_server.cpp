@@ -92,3 +92,11 @@ void HttpServer::do_accept() {
             do_accept();
         });
 }
+
+// 实现停止服务器的函数
+void HttpServer::stop_server() {
+    // 关闭 acceptor，停止监听新的连接
+    acceptor_.close();
+    // 停止 io_context 的运行，这样后续 ioc.run() 就会退出循环
+    ioc_.stop();
+}

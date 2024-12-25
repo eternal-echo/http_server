@@ -26,6 +26,9 @@ public:
     // 启动HTTP服务器，开始监听端口
     void start_server(unsigned short port);
 
+    // 新增的停止服务器接口
+    void stop_server();
+
 
 private:
     // 处理HTTP请求，解析请求参数，并调用回调函数
