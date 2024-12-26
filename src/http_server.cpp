@@ -35,7 +35,7 @@ void HttpServer::handle_request(const std::string& mac_address, const std::strin
 }
 
 std::unordered_map<std::string, std::string> HttpServer::analysis_request(http::request<http::string_body> req) {
-    std::string URL = req.target();
+    std::string URL = std::string(req.target());
     std::unordered_map<std::string, std::string> params;
     int start_index = URL.find('?') + 1;
     int end_index;

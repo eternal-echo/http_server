@@ -36,9 +36,8 @@ TEST_CASE("Test HttpServer handle_request method") {
     server.start_server(8080);
 
     //创建一个测试用的请求流
-    asio::io_context test_ioc;
-    boost::beast::tcp_stream test_request_stream(test_ioc);
-    asio::ip::tcp::resolver resolver(test_ioc);
+    boost::beast::tcp_stream test_request_stream(ioc);
+    asio::ip::tcp::resolver resolver(ioc);
     asio::ip::basic_resolver_results const results = resolver.resolve("localhost", "8080");
     test_request_stream.connect(results);
 
@@ -49,9 +48,6 @@ TEST_CASE("Test HttpServer handle_request method") {
 
     // 发送请求
     http::write(test_request_stream, test_req);
-
-    // 启动请求流的IO上下文
-    test_ioc.run();
 
     // 启动服务器端IO上下文
     ioc.run();
