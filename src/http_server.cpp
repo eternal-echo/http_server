@@ -35,7 +35,7 @@ void HttpServer::handle_request(const std::string& mac_address, const std::strin
 }
 
 std::unordered_map<std::string, std::string> HttpServer::analysis_request(http::request<http::string_body> req) {
-    std::string URL = req.target();
+    std::string URL = std::string(req.target());
     std::unordered_map<std::string, std::string> params;
     int start_index = URL.find('?') + 1;
     int end_index;
@@ -91,4 +91,12 @@ void HttpServer::do_accept() {
             // 接受下一个连接
             do_accept();
         });
+}
+
+// 实现停止服务器的函数
+void HttpServer::stop_server() {
+    // 关闭 acceptor，停止监听新的连接
+    acceptor_.close();
+    // 停止 io_context 的运行，这样后续 ioc.run() 就会退出循环
+    ioc_.stop();
 }
