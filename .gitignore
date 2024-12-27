@@ -38,3 +38,5 @@ build/
 cmake-build-debug/
 .idea/
 .vscode/
+
+/include/config.h

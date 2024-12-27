@@ -1,0 +1,8 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+constexpr const char* IP_ADDRESS = "192.168.1.161";
+constexpr const char* MAC_ADDRESS = "00:1A:2B:3C:4D:5E";
+constexpr unsigned short PORT = 9;
+
+#endif // CONFIG_H
