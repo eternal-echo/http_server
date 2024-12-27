@@ -34,19 +34,34 @@ void HttpServer::handle_request(const std::string& mac_address, const std::strin
     }
 }
 
-std::unordered_map<std::string, std::string> HttpServer::analysis_request(http::request<http::string_body> req) {
+void HttpServer::parse_param(const std::string& param, std::unordered_map<std::string, std::string>& params) {
+    size_t equal_pos = param.find('=');
+    if (equal_pos != std::string::npos) {
+        std::string key = param.substr(0, equal_pos);
+        std::string value = param.substr(equal_pos + 1);
+        params[key] = value;
+    }
+}
+
+std::unordered_map<std::string, std::string> HttpServer::analysis_request(const http::request<http::string_body>& req) {
     std::string URL = std::string(req.target());
     std::unordered_map<std::string, std::string> params;
-    int start_index = URL.find('?') + 1;
-    int end_index;
-    for ( ; ; ) {
-        end_index = URL.find('&', start_index);
-        if (end_index == int(std::string::npos)) { break; }
-        std::string sub = URL.substr(start_index, end_index - start_index);
-        params[sub.substr(0, sub.find('='))] = sub.substr(sub.find('=') + 1);
+
+    // 提取查询字符串
+    size_t start_index = URL.find('?');
+    if (start_index == std::string::npos) return params;  // 如果没有查询参数，直接返回空的params
+
+    start_index += 1;  // 跳过问号
+
+    size_t end_index;
+    while ((end_index = URL.find('&', start_index)) != std::string::npos) {
+        parse_param(URL.substr(start_index, end_index - start_index), params);
         start_index = end_index + 1;
     }
-    params[URL.substr(start_index, URL.find('=', start_index) - start_index)] = URL.substr(URL.find('=', start_index) + 1);
+
+    // 处理最后一个参数
+    parse_param(URL.substr(start_index), params);
+    
     return params;
 }
 
@@ -67,25 +82,29 @@ void HttpServer::do_accept() {
 
                 // 获取查询参数并转换为 std::string
                 std::unordered_map<std::string, std::string> params = analysis_request(req);
-                std::string mac_address = params["mac"];
-                std::string ip_address = params["ip"];
-                std::cout << "mac_address: " << mac_address << std::endl;
-                std::cout << "ip_address: " << ip_address << std::endl;
-                std::cout << "port: " << params["port"] << std::endl;
-                unsigned short port = std::stoi(params["port"]);
+                if (!params.empty()) {
+                    std::string mac_address = params["mac"];
+                    std::string ip_address = params["ip"];
+                    std::cout << "mac_address: " << mac_address << std::endl;
+                    std::cout << "ip_address: " << ip_address << std::endl;
+                    std::cout << "port: " << params["port"] << std::endl;
+                    unsigned short port = std::stoi(params["port"]);
 
-                // 处理请求并调用回调
-                handle_request(mac_address, ip_address, port);
+                    // 处理请求并调用回调
+                    handle_request(mac_address, ip_address, port);
 
-                // 创建响应
-                http::response<http::string_body> res{http::status::ok, req.version()};
-                // res.set(http::field::server, "Boost.Beast/HTTP Server");
-                res.set(http::field::content_type, "text/plain");
-                res.body() = "WOL signal sent successfully!";
-                res.prepare_payload();
+                    // 创建响应
+                    http::response<http::string_body> res{http::status::ok, req.version()};
+                    // res.set(http::field::server, "Boost.Beast/HTTP Server");
+                    res.set(http::field::content_type, "text/plain");
+                    res.body() = "WOL signal sent successfully!";
+                    res.prepare_payload();
 
-                // 发送响应
-                http::write(socket, res);
+                    // 发送响应
+                    http::write(socket, res);
+                } else {
+                    std::cerr << "Invalid request!" << std::endl;
+                }
             }
 
             // 接受下一个连接
