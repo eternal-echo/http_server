@@ -36,7 +36,8 @@ private:
 
     // 异步操作相关
     void do_accept();
-    std::unordered_map<std::string, std::string> analysis_request(http::request<http::string_body> req);
+    std::unordered_map<std::string, std::string> analysis_request(const http::request<http::string_body> &req);
+    void parse_param(const std::string& param, std::unordered_map<std::string, std::string>& params);
     asio::io_context& ioc_; // I/O 上下文
     asio::ip::tcp::acceptor acceptor_; // 监听器
     WOLCallback wol_callback_; // 回调函数
