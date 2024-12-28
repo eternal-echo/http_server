@@ -84,9 +84,23 @@ void HttpServer::do_accept() {
                 // 在这里处理 HTTP 请求
                 beast::flat_buffer buffer;
                 http::request<http::string_body> req;
+                // 读取 HTTP 请求
+                boost::system::error_code read_ec;
 
-                // 解析 HTTP 请求
-                http::read(socket, buffer, req);
+                // 捕获读取异常
+                try {
+                    http::read(socket, buffer, req, read_ec);
+                    if (read_ec) {
+                        if (read_ec == boost::asio::error::eof) {
+                            std::cerr << "Connection closed by client." << std::endl;
+                        } else {
+                            throw boost::system::system_error(read_ec);
+                        }
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error while reading HTTP request: " << e.what() << std::endl;
+                    return;
+                }
 
                 // 打印请求信息（调试成功后注释）
                 std::cout << "Received HTTP request: " << req.target() << " " << req.target() << " " << req.version() << std::endl;
