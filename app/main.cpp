@@ -1,13 +1,18 @@
 #include <iostream>
+#include <cstdlib>
 #include "http_server.hpp"
-#include "wol.hpp"
 
 // 用户自定义的回调函数（如果需要）
 bool custom_wol_callback(const std::string& mac_address, const std::string& ip_address, unsigned short port) {
     std::cout << "WOL triggered for MAC: " << mac_address
               << ", IP: " << ip_address
               << ", Port: " << port << std::endl;
-    wake_on_lan(mac_address, ip_address, port);
+    std::string command = "wakeonlan " + mac_address;
+    int ret = std::system(command.c_str());
+    if (ret != 0) {
+        std::cerr << "Failed to trigger WOL signal!" << std::endl;
+        return false;
+    }
     return true;
 }
 

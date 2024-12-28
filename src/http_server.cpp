@@ -61,6 +61,17 @@ std::unordered_map<std::string, std::string> HttpServer::analysis_request(const 
 
     // 处理最后一个参数
     parse_param(URL.substr(start_index), params);
+
+    // 默认值处理（如果参数缺失，使用默认值）
+    if (params.find("mac") == params.end()) {
+        std::cerr << "MAC address is missing!" << std::endl;
+    }
+    if (params.find("ip") == params.end()) {
+        params["ip"] = "255.255.255.255";  // 默认 IP
+    }
+    if (params.find("port") == params.end()) {
+        params["port"] = "9";  // 默认端口
+    }
     
     return params;
 }

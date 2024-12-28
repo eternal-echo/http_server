@@ -42,7 +42,6 @@ find_package(Boost REQUIRED COMPONENTS system log log_setup)
 # --------------------------------------------------------------------------------
 set(SOURCES          # All .cpp files in src/
     src/http_server.cpp
-    src/wol.cpp
 )
 set(TESTFILES        # All .cpp files in tests/
     tests/main.cpp
